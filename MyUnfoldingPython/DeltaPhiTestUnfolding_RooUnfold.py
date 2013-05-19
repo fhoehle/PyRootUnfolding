@@ -25,13 +25,14 @@ genDeltaPhi = classy_unfold1d_InputsOutputs_cfi.usedDeltaPhiGenHist()
 recDeltaPhi = classy_unfold1d_InputsOutputs_cfi.usedDeltaPhiRecHist()
 migMatrix = classy_unfold1d_InputsOutputs_cfi.usedMigrationMatrix()
 bckgHist = classy_unfold1d_InputsOutputs_cfi.backgroundsHist()
-
+dataBS = classy_unfold1d_InputsOutputs_cfi.usedDataBckSubtracted()
 dataUsed = classy_unfold1d_InputsOutputs_cfi.usedData()
 dataUsedNotScaled = dataUsed.Clone("dataUsedNotScaled")
 dataBckgSubtracted = dataUsed.Clone("dataBckgSubtracted")
 dataBckgSubtracted.Reset("ICEM")
 dataBckgSubtracted.Add(dataUsed)
 dataBckgSubtracted.Add(bckgHist,-1.0)
+import PyRoot_Functions.MyHistFunctions_cfi as MyHistFunctions_cfi
 #############################
 responseMatrixT = transponseTH2(migMatrix)
 response = RooUnfoldResponse("response","response")
@@ -39,10 +40,22 @@ response.Setup(None,None,responseMatrixT)
 ###
 unfold = RooUnfoldTUnfold(response, dataBckgSubtracted)
 hReco = unfold.Hreco()
+MyHistFunctions_cfi.SetErrorsNormHist(hReco,"width")
 hReco.Scale(1.0/hReco.Integral("width"))
 can = makeCan("UnfoldingVsGen")
 hReco.Draw()
-genDeltaPhi.Scale(1.0/genDeltaPhi.Integral("width"))
+MyHistFunctions_cfi.SetErrorsNormHist(genDeltaPhi,"width")
 genDeltaPhi.SetLineColor(2)
+
 genDeltaPhi.Draw("sames")
+can.Update()
+import PyRoot_Functions.StatBoxFunctions_cfi as StatBoxFunctions_cfi
+StatBoxFunctions_cfi.StatBoxSameLineColor(genDeltaPhi)
+unfoldResult.SetLineColor(3)
+MyHistFunctions_cfi.SetErrorsNormHist(unfoldResult,"width")
+unfoldResult.Scale(1.0/unfoldResult.Integral("width"))
+unfoldResult.Draw("samesE");
+StatBoxFunctions_cfi.StatBoxSameLineColor(unfoldResult)
+can.Update()
+can.Modified()
 
